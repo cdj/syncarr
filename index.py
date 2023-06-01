@@ -23,6 +23,7 @@ from config import (
 
     content_id_key, logger, is_sonarr, is_radarr, is_lidarr,
     get_status_path, get_content_path, get_profile_path, get_language_path, get_tag_path, get_content_put_path,
+    get_content_delete_path,
 
     is_in_docker, instance_sync_interval_seconds,
     sync_bidirectionally, auto_search, skip_missing, monitor_new_content,
@@ -313,6 +314,62 @@ def sync_servers(
 
     logging.info(f'{len(search_ids)} contents synced successfully')
 
+def delete_missing_movies(
+        instanceA_blacklist, 
+        instanceA_contents, 
+        instanceA_key,
+        instanceA_session,
+        instanceA_url, 
+        instanceB_blacklist, 
+        instanceB_contentIds
+    ):
+    global is_radarr, is_sonarr, is_test_run, sync_monitor
+    search_ids = []
+
+    # for each content id in instance A, check if it needs to be synced to instance B
+    for content in instanceA_contents:
+        content_not_synced = content[content_id_key] not in instanceB_contentIds
+        # only skip alrerady synced items if we arent syncing monitoring as well 
+        if is_radarr and content_not_synced:
+            content_id = str(content.get('id'))
+            title = content.get('title')
+            title_slug = content.get('titleSlug')
+
+            # if black list given then dont sync matching slugs/ids
+            if instanceA_blacklist:
+                if title_slug in instanceA_blacklist:
+                    logging.debug(f'Skipping content {title} - blacklist slug: {title_slug}')
+                    continue
+
+                if content_id in instanceA_blacklist:
+                    logging.debug(f'Skipping content {title} - blacklist ID: {content_id}')
+                    continue
+            if instanceB_blacklist:
+                if title_slug in instanceB_blacklist:
+                    logging.debug(f'Skipping content {title} - blacklist slug: {title_slug}')
+                    continue
+
+                if content_id in instanceB_blacklist:
+                    logging.debug(f'Skipping content {title} - blacklist ID: {content_id}')
+                    continue
+
+            instanceA_delete_url = get_content_delete_path(instanceA_url, instanceA_key, content_id)
+
+            if is_test_run:
+                logging.info('content title "{0}" removed successfully (test only) from {1}'.format(title, instanceA_delete_url))
+            elif content_not_synced:
+                # sync content if not synced
+                logging.info(f'removing content title "{title}" from {instanceA_delete_url}')
+                delete_response = instanceA_session.delete(instanceA_delete_url)
+                # check response and save content id for searching later on if success
+                if delete_response.status_code != 201 and delete_response.status_code != 200:
+                    logger.error(f'server delete error for {title} - response: {delete_response.text}')
+                else:
+                    search_ids.append(content_id)
+                    logging.info('content title "{0}" deleted'.format(title))
+
+    logging.info(f'{len(search_ids)} contents removed successfully from radarrB ({instanceA_url})')
+
 
 def get_instance_contents(instance_url, instance_key, instance_session, instance_name=''):
     instance_contentIds = []
@@ -487,6 +544,15 @@ def sync_content():
             instanceB_session=instanceA_session,
             instanceB_url=instanceA_url
         )
+    elif delete_missing and is_radarr:
+        delete_missing_movies(
+            instanceA_blacklist=instanceB_blacklist,
+            instanceA_contents=instanceB_contents,
+            instanceA_key=instanceB_key,
+            instanceA_session=instanceB_session,
+            instanceA_url=instanceB_url,
+            instanceB_blacklist=instanceA_blacklist,
+            instanceB_contentIds=instanceA_contentIds
         )
 
 ########################################################################################################################

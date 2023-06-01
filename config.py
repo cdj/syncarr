@@ -423,6 +423,12 @@ def get_content_put_path(instance_url, key, content_id):
     logger.debug('get_content_put_path: {}'.format(url))
     return url
 
+def get_content_delete_path(instance_url, key, content_id):
+    url = get_path(instance_url, f'{api_content_path}/{content_id}', key)
+    url = f"{url}&deleteFiles=true&addImportExclusion=false"
+    logger.debug('get_content_delete_path: {}'.format(url))
+    return url
+
 
 def get_language_path(instance_url, key):
     url = get_path(instance_url, api_language_path, key)
