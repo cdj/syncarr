@@ -192,10 +192,21 @@ def get_language_from_id(instance_session, instance_url, instance_key, instance_
     return instance_language_id
 
 
-def sync_servers(instanceA_contents, instanceB_language_id, instanceB_contentIds,
-                 instanceB_path, instanceB_profile_id, instanceA_profile_filter_id,
-                 instanceB_session, instanceB_url, instanceB_key, instanceA_quality_match,
-                 instanceA_tag_filter_id, instanceA_blacklist, instanceB_contents):
+def sync_servers(
+        instanceA_blacklist,
+        instanceA_contents,
+        instanceA_profile_filter_id,
+        instanceA_quality_match,
+        instanceA_tag_filter_id,
+        instanceB_contentIds,
+        instanceB_contents,
+        instanceB_key,
+        instanceB_language_id,
+        instanceB_path,
+        instanceB_profile_id,
+        instanceB_session,
+        instanceB_url
+    ):
     global is_radarr, is_sonarr, is_test_run, sync_monitor
     search_ids = []
 
@@ -462,19 +473,20 @@ def sync_content():
         logger.info('syncing content from instance B to instance A')
 
         sync_servers(
+            instanceA_blacklist=instanceB_blacklist,
             instanceA_contents=instanceB_contents,
-            instanceB_contents=instanceA_contents,
+            instanceA_profile_filter_id=instanceB_profile_filter_id,
+            instanceA_quality_match=instanceB_quality_match,
+            instanceA_tag_filter_id=instanceB_tag_filter_id,
             instanceB_contentIds=instanceA_contentIds,
+            instanceB_contents=instanceA_contents,
+            instanceB_key=instanceA_key,
             instanceB_language_id=instanceA_language_id,
             instanceB_path=instanceA_path,
             instanceB_profile_id=instanceA_profile_id,
             instanceB_session=instanceA_session,
-            instanceB_url=instanceA_url,
-            instanceA_profile_filter_id=instanceB_profile_filter_id,
-            instanceB_key=instanceA_key,
-            instanceA_quality_match=instanceB_quality_match,
-            instanceA_tag_filter_id=instanceB_tag_filter_id,
-            instanceA_blacklist=instanceB_blacklist
+            instanceB_url=instanceA_url
+        )
         )
 
 ########################################################################################################################
