@@ -26,6 +26,7 @@ from config import (
 
     is_in_docker, instance_sync_interval_seconds,
     sync_bidirectionally, auto_search, skip_missing, monitor_new_content,
+    delete_missing,
     api_version, is_test_run, sync_monitor
 )
 

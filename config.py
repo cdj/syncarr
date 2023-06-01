@@ -170,6 +170,7 @@ def set_general_option(env_name, config_name, default_value):
 
 # get general options
 sync_bidirectionally = set_general_option('SYNCARR_BIDIRECTIONAL_SYNC', 'bidirectional', default_value=0)
+delete_missing = set_general_option('SYNCARR_DELETE_MISSING', 'delete_missing', default_value=0)
 auto_search = set_general_option('SYNCARR_AUTO_SEARCH', 'auto_search', default_value=1)
 skip_missing = set_general_option('SYNCARR_SKIP_MISSING', 'skip_missing', default_value=1)
 monitor_new_content = set_general_option('SYNCARR_MONITOR_NEW_CONTENT', 'monitor_new_content', default_value=1)
@@ -483,6 +484,7 @@ logger.debug({
 
     'monitor_new_content': monitor_new_content,
     'sync_bidirectionally': sync_bidirectionally,
+    'delete_missing': delete_missing,
     'auto_search': auto_search,
     'skip_missing': skip_missing,
     'api_version': api_version,
